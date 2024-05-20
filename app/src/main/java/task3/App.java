@@ -3,7 +3,6 @@
  */
 package task3;
 
-
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.w3c.dom.Document;
@@ -25,19 +24,38 @@ public class App {
 
             // Parse XML file
             File xmlFile = new File(filePath);
+            if (!xmlFile.exists() || !xmlFile.isFile()) {
+                System.out.println("The specified XML file does not exist or is not a file: " + filePath);
+                return;
+            }
+
             DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
             DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
             Document doc = dBuilder.parse(xmlFile);
             doc.getDocumentElement().normalize();
-
-            // Get list of all <record> elements
-            NodeList nodeList = doc.getElementsByTagName("record");
 
             // Check if command-line arguments are provided
             if (args.length == 0) {
                 System.out.println("No field numbers provided.");
                 return;
             }
+
+            // Validate field numbers
+            for (String fieldNumber : args) {
+                try {
+                    int field = Integer.parseInt(fieldNumber);
+                    if (field < 1 || field > 6) {
+                        System.out.println("Invalid field number: " + fieldNumber);
+                        return;
+                    }
+                } catch (NumberFormatException e) {
+                    System.out.println("Invalid field number: " + fieldNumber);
+                    return;
+                }
+            }
+
+            // Get list of all <record> elements
+            NodeList nodeList = doc.getElementsByTagName("record");
 
             // Initialize ObjectMapper for JSON conversion
             ObjectMapper objectMapper = new ObjectMapper();
@@ -56,22 +74,22 @@ public class App {
                         int field = Integer.parseInt(fieldNumber);
                         switch (field) {
                             case 1:
-                                jsonRecord.put("Name", element.getElementsByTagName("name").item(0).getTextContent());
+                                jsonRecord.put("Name", getElementTextContent(element, "name"));
                                 break;
                             case 2:
-                                jsonRecord.put("Postal/Zip", element.getElementsByTagName("postalZip").item(0).getTextContent());
+                                jsonRecord.put("Postal/Zip", getElementTextContent(element, "postalZip"));
                                 break;
                             case 3:
-                                jsonRecord.put("Region", element.getElementsByTagName("region").item(0).getTextContent());
+                                jsonRecord.put("Region", getElementTextContent(element, "region"));
                                 break;
                             case 4:
-                                jsonRecord.put("Country", element.getElementsByTagName("country").item(0).getTextContent());
+                                jsonRecord.put("Country", getElementTextContent(element, "country"));
                                 break;
                             case 5:
-                                jsonRecord.put("Address", element.getElementsByTagName("address").item(0).getTextContent());
+                                jsonRecord.put("Address", getElementTextContent(element, "address"));
                                 break;
                             case 6:
-                                jsonRecord.put("List", element.getElementsByTagName("list").item(0).getTextContent());
+                                jsonRecord.put("List", getElementTextContent(element, "list"));
                                 break;
                             default:
                                 System.out.println("Invalid field number: " + field);
@@ -88,6 +106,15 @@ public class App {
 
         } catch (Exception e) {
             e.printStackTrace();
+        }
+    }
+
+    private static String getElementTextContent(Element element, String tagName) {
+        NodeList nodeList = element.getElementsByTagName(tagName);
+        if (nodeList.getLength() > 0 && nodeList.item(0).getNodeType() == Node.ELEMENT_NODE) {
+            return nodeList.item(0).getTextContent();
+        } else {
+            return "N/A"; // Return a default value if the element is missing
         }
     }
 }
