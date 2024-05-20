@@ -4,6 +4,8 @@
 package task3;
 
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -12,6 +14,8 @@ import org.w3c.dom.NodeList;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 
 public class App {
     public static void main(String[] args) {
@@ -35,40 +39,53 @@ public class App {
                 return;
             }
 
-            // Display selected fields for each record
+            // Initialize ObjectMapper for JSON conversion
+            ObjectMapper objectMapper = new ObjectMapper();
+
+            // Create a list to store JSON objects
+            List<ObjectNode> jsonList = new ArrayList<>();
+
+            // Convert selected fields to JSON for each record
             for (int temp = 0; temp < nodeList.getLength(); temp++) {
                 Node node = nodeList.item(temp);
                 if (node.getNodeType() == Node.ELEMENT_NODE) {
                     Element element = (Element) node;
-                    System.out.println("Record " + (temp + 1) + ":");
+                    // Create a new JSON object for each record
+                    ObjectNode jsonRecord = objectMapper.createObjectNode();
                     for (String fieldNumber : args) {
                         int field = Integer.parseInt(fieldNumber);
                         switch (field) {
                             case 1:
-                                System.out.println("Name: " + element.getElementsByTagName("name").item(0).getTextContent());
+                                jsonRecord.put("Name", element.getElementsByTagName("name").item(0).getTextContent());
                                 break;
                             case 2:
-                                System.out.println("Postal/Zip: " + element.getElementsByTagName("postalZip").item(0).getTextContent());
+                                jsonRecord.put("Postal/Zip", element.getElementsByTagName("postalZip").item(0).getTextContent());
                                 break;
                             case 3:
-                                System.out.println("Region: " + element.getElementsByTagName("region").item(0).getTextContent());
+                                jsonRecord.put("Region", element.getElementsByTagName("region").item(0).getTextContent());
                                 break;
                             case 4:
-                                System.out.println("Country: " + element.getElementsByTagName("country").item(0).getTextContent());
+                                jsonRecord.put("Country", element.getElementsByTagName("country").item(0).getTextContent());
                                 break;
                             case 5:
-                                System.out.println("Address: " + element.getElementsByTagName("address").item(0).getTextContent());
+                                jsonRecord.put("Address", element.getElementsByTagName("address").item(0).getTextContent());
                                 break;
                             case 6:
-                                System.out.println("List: " + element.getElementsByTagName("list").item(0).getTextContent());
+                                jsonRecord.put("List", element.getElementsByTagName("list").item(0).getTextContent());
                                 break;
                             default:
                                 System.out.println("Invalid field number: " + field);
                         }
                     }
-                    System.out.println();
+                    // Add the JSON object to the list
+                    jsonList.add(jsonRecord);
                 }
             }
+
+            // Convert the list of JSON objects to JSON array and print
+            String jsonOutput = objectMapper.writeValueAsString(jsonList);
+            System.out.println(jsonOutput);
+
         } catch (Exception e) {
             e.printStackTrace();
         }
